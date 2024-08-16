@@ -59,34 +59,82 @@ const client = new MongoClient(uri, {
 
 
 
+    // app.get('/all-surveys', async (req, res) => {
+    //   const size = parseInt(req.query.size) || 10;
+    //   const page = parseInt(req.query.page) || 1; // Page 1-based indexing
+    //   const filter = req.query.filter;
+    //   const sort = req.query.sort;
+    //   const search = req.query.search;
+
+    //   // Build the query object
+    //   let query = search ? { product_name: { $regex: search, $options: 'i' } } : {};
+    //   if (filter) query.category = filter;
+
+    //   // Build the sort options
+    //   let sortOptions = {};
+    //   if (sort) sortOptions.price = sort === 'asc' ? 1 : -1;
+
+    //   try {
+    //     // Fetch surveys and total count
+    //     const [surveys, totalCount] = await Promise.all([
+    //       productCollections.find(query).sort(sortOptions).skip((page - 1) * size).limit(size).toArray(),
+    //       productCollections.countDocuments(query)
+    //     ]);
+
+    //     res.send({ surveys, totalCount });
+    //   } catch (error) {
+    //     console.error('Error fetching surveys:', error);
+    //     res.status(500).send({ error: 'Internal Server Error' });
+    //   }
+    // });
+
+
+
+
     app.get('/all-surveys', async (req, res) => {
       const size = parseInt(req.query.size) || 10;
       const page = parseInt(req.query.page) || 1; // Page 1-based indexing
       const filter = req.query.filter;
       const sort = req.query.sort;
       const search = req.query.search;
-
+  
       // Build the query object
       let query = search ? { product_name: { $regex: search, $options: 'i' } } : {};
       if (filter) query.category = filter;
-
+  
       // Build the sort options
       let sortOptions = {};
-      if (sort) sortOptions.voteCount = sort === 'asc' ? 1 : -1;
-
-      try {
-        // Fetch surveys and total count
-        const [surveys, totalCount] = await Promise.all([
-          productCollections.find(query).sort(sortOptions).skip((page - 1) * size).limit(size).toArray(),
-          productCollections.countDocuments(query)
-        ]);
-
-        res.send({ surveys, totalCount });
-      } catch (error) {
-        console.error('Error fetching surveys:', error);
-        res.status(500).send({ error: 'Internal Server Error' });
+      if (sort) {
+          switch (sort) {
+              case 'asc':
+                  sortOptions.price = 1;
+                  break;
+              case 'dsc':
+                  sortOptions.price = -1;
+                  break;
+              case 'newest':
+                  sortOptions.creation_date = -1; // Sort by creation_date, newest first
+                  break;
+              default:
+                  break;
+          }
       }
-    });
+  
+      try {
+          // Fetch surveys and total count
+          const [surveys, totalCount] = await Promise.all([
+              productCollections.find(query).sort(sortOptions).skip((page - 1) * size).limit(size).toArray(),
+              productCollections.countDocuments(query)
+          ]);
+  
+          res.send({ surveys, totalCount });
+      } catch (error) {
+          console.error('Error fetching surveys:', error);
+          res.status(500).send({ error: 'Internal Server Error' });
+      }
+  });
+  
+
 
 
     // Get all surveys data count from db
