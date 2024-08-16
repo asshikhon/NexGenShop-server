@@ -98,58 +98,69 @@ const client = new MongoClient(uri, {
       const filter1 = req.query.filter1;
       const sort = req.query.sort;
       const search = req.query.search;
-  
+      const priceRange = req.query.price_range; // New parameter
+    
       // Build the query object
       let query = search ? { product_name: { $regex: search, $options: 'i' } } : {};
       if (filter) query.category = filter;
       if (filter1) query.brand_name = filter1;
-  
+    
+      // Handle price range filter
+      if (priceRange) {
+        const [minPrice, maxPrice] = priceRange.split('-').map(Number);
+        query.price = { $gte: minPrice, $lte: maxPrice };
+      }
+    
       // Build the sort options
       let sortOptions = {};
       if (sort) {
-          switch (sort) {
-              case 'asc':
-                  sortOptions.price = 1;
-                  break;
-              case 'dsc':
-                  sortOptions.price = -1;
-                  break;
-              case 'newest':
-                  sortOptions.creation_date = -1; // Sort by creation_date, newest first
-                  break;
-              default:
-                  break;
-          }
+        switch (sort) {
+          case 'asc':
+            sortOptions.price = 1;
+            break;
+          case 'dsc':
+            sortOptions.price = -1;
+            break;
+          case 'newest':
+            sortOptions.creation_date = -1; // Sort by creation_date, newest first
+            break;
+          default:
+            break;
+        }
       }
-  
+    
       try {
-          // Fetch surveys and total count
-          const [surveys, totalCount] = await Promise.all([
-              productCollections.find(query).sort(sortOptions).skip((page - 1) * size).limit(size).toArray(),
-              productCollections.countDocuments(query)
-          ]);
-  
-          res.send({ surveys, totalCount });
+        // Fetch surveys and total count
+        const [surveys, totalCount] = await Promise.all([
+          productCollections.find(query).sort(sortOptions).skip((page - 1) * size).limit(size).toArray(),
+          productCollections.countDocuments(query)
+        ]);
+    
+        res.send({ surveys, totalCount });
       } catch (error) {
-          console.error('Error fetching surveys:', error);
-          res.status(500).send({ error: 'Internal Server Error' });
+        console.error('Error fetching surveys:', error);
+        res.status(500).send({ error: 'Internal Server Error' });
       }
-  });
-  
-
-
-
+    });
+    
     // Get all surveys data count from db
     app.get('/products-count', async (req, res) => {
       const filter = req.query.filter;
       const filter1 = req.query.filter1;
       const search = req.query.search;
-
+      const priceRange = req.query.price_range; // New parameter
+    
       // Build the query object
       let query = search ? { product_name: { $regex: search, $options: 'i' } } : {};
       if (filter) query.category = filter;
       if (filter1) query.brand_name = filter1;
-
+    
+      // Handle price range filter
+      if (priceRange) {
+        const [minPrice, maxPrice] = priceRange.split('-').map(Number);
+        query.price = { $gte: minPrice, $lte: maxPrice };
+      }
+    
       try {
         const count = await productCollections.countDocuments(query);
         res.send({ count });
@@ -158,6 +169,7 @@ const client = new MongoClient(uri, {
         res.status(500).send({ error: 'Internal Server Error' });
       }
     });
+    
 
 
 
