@@ -95,12 +95,14 @@ const client = new MongoClient(uri, {
       const size = parseInt(req.query.size) || 10;
       const page = parseInt(req.query.page) || 1; // Page 1-based indexing
       const filter = req.query.filter;
+      const filter1 = req.query.filter1;
       const sort = req.query.sort;
       const search = req.query.search;
   
       // Build the query object
       let query = search ? { product_name: { $regex: search, $options: 'i' } } : {};
       if (filter) query.category = filter;
+      if (filter1) query.brand_name = filter1;
   
       // Build the sort options
       let sortOptions = {};
@@ -140,11 +142,13 @@ const client = new MongoClient(uri, {
     // Get all surveys data count from db
     app.get('/products-count', async (req, res) => {
       const filter = req.query.filter;
+      const filter1 = req.query.filter1;
       const search = req.query.search;
 
       // Build the query object
-      let query = search ? { title: { $regex: search, $options: 'i' } } : {};
+      let query = search ? { product_name: { $regex: search, $options: 'i' } } : {};
       if (filter) query.category = filter;
+      if (filter1) query.brand_name = filter1;
 
       try {
         const count = await productCollections.countDocuments(query);
