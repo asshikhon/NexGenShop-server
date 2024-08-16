@@ -67,7 +67,7 @@ const client = new MongoClient(uri, {
       const search = req.query.search;
 
       // Build the query object
-      let query = search ? { title: { $regex: search, $options: 'i' } } : {};
+      let query = search ? { product_name: { $regex: search, $options: 'i' } } : {};
       if (filter) query.category = filter;
 
       // Build the sort options
