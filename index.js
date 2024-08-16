@@ -39,6 +39,28 @@ const client = new MongoClient(uri, {
     const productCollections = client.db("nextgenshop").collection("products");
 
 
+
+
+    // Get all surveys data methods
+    app.get('/products', async (req, res) => {
+      let sortQuery = { ratings: -1 };
+
+      const { sort } = req.query;
+      if (sort === 'top_DESC') {
+        sortQuery = { ratings: -1 };
+      }
+
+
+      try {
+        const result = await productCollections.find({}).sort(sortQuery).limit(6).toArray();
+        res.send(result);
+      } catch (error) {
+        console.error("Error fetching top foods:", error);
+        res.status(500).json({ error: "Internal Server Error" });
+      }
+    });
+
+
       // Send a ping to confirm a successful connection
     //   await client.db("admin").command({ ping: 1 });
       console.log("Pinged your deployment. You successfully connected to MongoDB!");
