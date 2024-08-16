@@ -5,18 +5,8 @@ const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config();
 const port = process.env.PORT || 5000;
 
-
-
 // Middleware
 app.use(cors());
-
-
-
-// const corsOptions = {
-//     origin: 'http://localhost:5173',
-//     credentials: true,
-//     optionsSuccessStatus: 200,
-// }
 
 app.use(express.json());
 
@@ -34,7 +24,6 @@ const client = new MongoClient(uri, {
   async function run() {
     try {
       // Connect the client to the server	(optional starting in v4.7)
-    //   await client.connect();
 
     const productCollections = client.db("nextgenshop").collection("products");
 
@@ -59,39 +48,7 @@ const client = new MongoClient(uri, {
 
 
 
-    // app.get('/all-surveys', async (req, res) => {
-    //   const size = parseInt(req.query.size) || 10;
-    //   const page = parseInt(req.query.page) || 1; // Page 1-based indexing
-    //   const filter = req.query.filter;
-    //   const sort = req.query.sort;
-    //   const search = req.query.search;
-
-    //   // Build the query object
-    //   let query = search ? { product_name: { $regex: search, $options: 'i' } } : {};
-    //   if (filter) query.category = filter;
-
-    //   // Build the sort options
-    //   let sortOptions = {};
-    //   if (sort) sortOptions.price = sort === 'asc' ? 1 : -1;
-
-    //   try {
-    //     // Fetch surveys and total count
-    //     const [surveys, totalCount] = await Promise.all([
-    //       productCollections.find(query).sort(sortOptions).skip((page - 1) * size).limit(size).toArray(),
-    //       productCollections.countDocuments(query)
-    //     ]);
-
-    //     res.send({ surveys, totalCount });
-    //   } catch (error) {
-    //     console.error('Error fetching surveys:', error);
-    //     res.status(500).send({ error: 'Internal Server Error' });
-    //   }
-    // });
-
-
-
-
-    app.get('/all-surveys', async (req, res) => {
+    app.get('/all-products', async (req, res) => {
       const size = parseInt(req.query.size) || 10;
       const page = parseInt(req.query.page) || 1; // Page 1-based indexing
       const filter = req.query.filter;
@@ -131,14 +88,14 @@ const client = new MongoClient(uri, {
     
       try {
         // Fetch surveys and total count
-        const [surveys, totalCount] = await Promise.all([
+        const [products, totalCount] = await Promise.all([
           productCollections.find(query).sort(sortOptions).skip((page - 1) * size).limit(size).toArray(),
           productCollections.countDocuments(query)
         ]);
     
-        res.send({ surveys, totalCount });
+        res.send({ products, totalCount });
       } catch (error) {
-        console.error('Error fetching surveys:', error);
+        console.error('Error fetching products:', error);
         res.status(500).send({ error: 'Internal Server Error' });
       }
     });
@@ -165,21 +122,14 @@ const client = new MongoClient(uri, {
         const count = await productCollections.countDocuments(query);
         res.send({ count });
       } catch (error) {
-        console.error('Error fetching survey count:', error);
+        console.error('Error fetching products count:', error);
         res.status(500).send({ error: 'Internal Server Error' });
       }
     });
     
-
-
-
-
-      // Send a ping to confirm a successful connection
-    //   await client.db("admin").command({ ping: 1 });
       console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
-      // Ensures that the client will close when you finish/error
-    //   await client.close();
+
     }
   }
   run().catch(console.dir);
