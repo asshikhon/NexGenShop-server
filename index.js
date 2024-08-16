@@ -39,8 +39,6 @@ const client = new MongoClient(uri, {
     const productCollections = client.db("nextgenshop").collection("products");
 
 
-
-
     // Get all surveys data methods
     app.get('/products', async (req, res) => {
       let sortQuery = { ratings: -1 };
@@ -49,8 +47,6 @@ const client = new MongoClient(uri, {
       if (sort === 'top_DESC') {
         sortQuery = { ratings: -1 };
       }
-
-
       try {
         const result = await productCollections.find({}).sort(sortQuery).limit(6).toArray();
         res.send(result);
@@ -59,6 +55,59 @@ const client = new MongoClient(uri, {
         res.status(500).json({ error: "Internal Server Error" });
       }
     });
+
+
+
+
+    app.get('/all-surveys', async (req, res) => {
+      const size = parseInt(req.query.size) || 10;
+      const page = parseInt(req.query.page) || 1; // Page 1-based indexing
+      const filter = req.query.filter;
+      const sort = req.query.sort;
+      const search = req.query.search;
+
+      // Build the query object
+      let query = search ? { title: { $regex: search, $options: 'i' } } : {};
+      if (filter) query.category = filter;
+
+      // Build the sort options
+      let sortOptions = {};
+      if (sort) sortOptions.voteCount = sort === 'asc' ? 1 : -1;
+
+      try {
+        // Fetch surveys and total count
+        const [surveys, totalCount] = await Promise.all([
+          productCollections.find(query).sort(sortOptions).skip((page - 1) * size).limit(size).toArray(),
+          productCollections.countDocuments(query)
+        ]);
+
+        res.send({ surveys, totalCount });
+      } catch (error) {
+        console.error('Error fetching surveys:', error);
+        res.status(500).send({ error: 'Internal Server Error' });
+      }
+    });
+
+
+    // Get all surveys data count from db
+    app.get('/products-count', async (req, res) => {
+      const filter = req.query.filter;
+      const search = req.query.search;
+
+      // Build the query object
+      let query = search ? { title: { $regex: search, $options: 'i' } } : {};
+      if (filter) query.category = filter;
+
+      try {
+        const count = await productCollections.countDocuments(query);
+        res.send({ count });
+      } catch (error) {
+        console.error('Error fetching survey count:', error);
+        res.status(500).send({ error: 'Internal Server Error' });
+      }
+    });
+
+
 
 
       // Send a ping to confirm a successful connection
